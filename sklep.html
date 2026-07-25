@@ -200,7 +200,6 @@
             <span class="close-cart" onclick="toggleCart()">&times;</span>
         </div>
         <div class="cart-items" id="cart-items-container">
-            <!-- Tutaj JS wstrzykuje produkty -->
             <p class="empty-cart-msg">Koszyk jest aktualnie pusty.</p>
         </div>
         <div class="cart-footer">
@@ -218,90 +217,12 @@
         <p>Zamów nasze rzemieślnicze wyroby bezpośrednio do domu. Gwarantujemy zachowanie łańcucha chłodniczego podczas transportu.</p>
     </section>
 
-    <!-- LISTA PRODUKTÓW -->
+    <!-- LISTA PRODUKTÓW (GENEROWANA DYNAMICZNIE Z GOOGLE SHEETS) -->
     <section class="shop-section">
-        <div class="shop-grid">
-
-            <!-- Produkt 1 -->
-            <div class="shop-card">
-                <img src="https://images.unsplash.com/photo-1626200419199-391ae4be7a41?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Kiełbasa Tradycyjna" class="shop-img">
-                <h3 class="shop-title">Kiełbasa Tradycyjna</h3>
-                <p class="shop-desc">100% mięsa wieprzowego, wędzona drewnem bukowym. Klasyka z naszej wędzarni. (ok. 420g)</p>
-                <div class="shop-price">29,90 zł</div>
-                <div class="purchase-controls">
-                    <div class="qty-selector">
-                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
-                        <input type="text" class="qty-input" value="1" readonly>
-                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
-                    </div>
-                    <button class="btn-add" onclick="addToCart('Kiełbasa Tradycyjna', 29.90, this)">DODAJ</button>
-                </div>
-            </div>
-
-            <!-- Produkt 2 -->
-            <div class="shop-card">
-                <img src="https://images.unsplash.com/photo-1585325701956-60dd9c858a3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Kiełbasa Czosnkowa" class="shop-img">
-                <h3 class="shop-title">Kiełbasa Czosnkowa</h3>
-                <p class="shop-desc">Zdecydowany aromat świeżego polskiego czosnku, idealny balans przypraw. (ok. 400g)</p>
-                <div class="shop-price">32,90 zł</div>
-                <div class="purchase-controls">
-                    <div class="qty-selector">
-                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
-                        <input type="text" class="qty-input" value="1" readonly>
-                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
-                    </div>
-                    <button class="btn-add" onclick="addToCart('Kiełbasa Czosnkowa', 32.90, this)">DODAJ</button>
-                </div>
-            </div>
-
-            <!-- Produkt 3 -->
-            <div class="shop-card">
-                <img src="https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Kiełbasa Pikantna" class="shop-img">
-                <h3 class="shop-title">Kiełbasa Pikantna</h3>
-                <p class="shop-desc">Mocny dodatek świeżego Jalapeño. Tylko dla fanów ostrych wrażeń. (ok. 350g)</p>
-                <div class="shop-price">34,90 zł</div>
-                <div class="purchase-controls">
-                    <div class="qty-selector">
-                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
-                        <input type="text" class="qty-input" value="1" readonly>
-                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
-                    </div>
-                    <button class="btn-add" onclick="addToCart('Kiełbasa Pikantna', 34.90, this)">DODAJ</button>
-                </div>
-            </div>
-
-            <!-- Produkt 4 (Zestaw) -->
-            <div class="shop-card">
-                <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Grill Box Premium" class="shop-img">
-                <h3 class="shop-title">Grill Box Premium</h3>
-                <p class="shop-desc">Zestaw bestsellerów (Tradycyjna x2, Pikantna x1, Czosnkowa x1) + musztarda gratis.</p>
-                <div class="shop-price">109,00 zł</div>
-                <div class="purchase-controls">
-                    <div class="qty-selector">
-                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
-                        <input type="text" class="qty-input" value="1" readonly>
-                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
-                    </div>
-                    <button class="btn-add" onclick="addToCart('Grill Box Premium', 109.00, this)">DODAJ</button>
-                </div>
-            </div>
-
-            <!-- Produkt 5 (Dodatek) -->
-            <div class="shop-card">
-                <img src="https://images.unsplash.com/photo-1512489816568-d069db8303d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Musztarda z Gorczycą" class="shop-img" style="filter: grayscale(30%);">
-                <h3 class="shop-title">Musztarda z Gorczycą</h3>
-                <p class="shop-desc">Nasza autorska, ostra musztarda z widocznymi ziarnami. Słoiczek 200g.</p>
-                <div class="shop-price">12,00 zł</div>
-                <div class="purchase-controls">
-                    <div class="qty-selector">
-                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
-                        <input type="text" class="qty-input" value="1" readonly>
-                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
-                    </div>
-                    <button class="btn-add" onclick="addToCart('Musztarda z Gorczycą', 12.00, this)">DODAJ</button>
-                </div>
-            </div>
-
+        <div class="shop-grid" id="dynamic-shop-grid">
+            <p style="text-align: center; color: var(--accent-gold); grid-column: 1/-1; font-family: 'Oswald', sans-serif; font-size: 20px; letter-spacing: 2px;">
+                Trwa łączenie z magazynem w Komornikach...
+            </p>
         </div>
     </section>
 
@@ -323,13 +244,11 @@
         // --- SILNIK SKLEPU (KOSZYK) ---
         let cart = [];
 
-        // Otwieranie / Zamykanie Koszyka
         function toggleCart() {
             document.getElementById('cart-sidebar').classList.toggle('active');
             document.getElementById('cart-overlay').classList.toggle('active');
         }
 
-        // Zmiana ilości na karcie produktu (+ / -)
         function changeQty(btn, change) {
             const input = btn.parentElement.querySelector('.qty-input');
             let currentVal = parseInt(input.value);
@@ -339,13 +258,10 @@
             }
         }
 
-        // Dodawanie do koszyka
         function addToCart(name, price, btnElement) {
-            // Pobierz ilość z sąsiedniego inputa
             const qtyInput = btnElement.parentElement.querySelector('.qty-input');
             const quantity = parseInt(qtyInput.value);
 
-            // Sprawdź czy produkt już jest w koszyku
             const existingItem = cart.find(item => item.name === name);
             if (existingItem) {
                 existingItem.quantity += quantity;
@@ -353,13 +269,9 @@
                 cart.push({ name: name, price: price, quantity: quantity });
             }
 
-            // Zresetuj input do 1 po dodaniu
             qtyInput.value = 1;
-            
-            // Zaktualizuj UI i otwórz koszyk
             updateCartUI();
             
-            // Wizualny feedback na przycisku
             const originalText = btnElement.innerText;
             btnElement.innerText = "DODANO ✓";
             btnElement.style.background = "var(--accent-gold)";
@@ -375,21 +287,17 @@
             }
         }
 
-        // Usuwanie z koszyka
         function removeFromCart(index) {
             cart.splice(index, 1);
             updateCartUI();
         }
 
-        // Aktualizacja widoku koszyka
         function updateCartUI() {
             const container = document.getElementById('cart-items-container');
             const countDisplay = document.getElementById('cart-count');
             const totalDisplay = document.getElementById('cart-total-price');
             
-            // Czyszczenie obecnej listy
             container.innerHTML = '';
-            
             let totalItems = 0;
             let totalPrice = 0;
 
@@ -401,7 +309,6 @@
                     const itemTotal = item.price * item.quantity;
                     totalPrice += itemTotal;
 
-                    // Tworzenie HTML dla elementu w koszyku
                     const cartItemHTML = `
                         <div class="cart-item">
                             <div class="cart-item-info">
@@ -418,10 +325,102 @@
                 });
             }
 
-            // Aktualizacja licznika i sumy
             countDisplay.innerText = totalItems;
             totalDisplay.innerText = totalPrice.toFixed(2).replace('.', ',') + ' zł';
         }
+
+        // --- POBIERANIE DANYCH Z GOOGLE SHEETS (CSV) ---
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTn6DzrOC3IsXjWGCx2xWk0o2hHnVjDcjp9RXLzYhQJt95sggcWSbb4Fj8dO8Z0uJvGHukjwz4vIr1M/pub?gid=0&single=true&output=csv';
+
+        // Prosty, ale niezawodny parser CSV
+        function parseCSVRow(str) {
+            let arr = [];
+            let quote = false;
+            let val = '';
+            for (let i = 0; i < str.length; i++) {
+                let cc = str[i], nc = str[i+1];
+                if (cc === '"' && quote && nc === '"') { val += '"'; i++; continue; }
+                if (cc === '"') { quote = !quote; continue; }
+                if (cc === ',' && !quote) { arr.push(val); val = ''; continue; }
+                val += cc;
+            }
+            arr.push(val);
+            return arr;
+        }
+
+        async function loadProducts() {
+            try {
+                const response = await fetch(csvUrl);
+                const data = await response.text();
+                
+                // Rozdzielanie na linie z obsługą różnych znaków końca linii
+                const rows = data.split(/\r?\n/).filter(line => line.trim().length > 0).map(parseCSVRow);
+                const productsContainer = document.getElementById('dynamic-shop-grid');
+                
+                productsContainer.innerHTML = ''; // Usuwamy napis "Ładowanie..."
+
+                let productCount = 0;
+
+                // Zaczynamy od indeksu 1, żeby pominąć wiersz z nagłówkami
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row.length < 5) continue; // Zabezpieczenie przed uszkodzonymi wierszami
+
+                    // Dopasowanie do struktury kolumn
+                    const nazwa = row[2] ? row[2].trim() : '';
+                    const opis = row[3] ? row[3].trim() : '';
+                    const waga = row[4] ? row[4].trim() : '';
+                    
+                    // Bezpieczne parsowanie ceny (zamiana przecinka na kropkę do obliczeń JS)
+                    let cenaRaw = row[5] ? row[5].replace(/\s/g, '').replace(',', '.') : '0';
+                    const cenaNum = parseFloat(cenaRaw);
+                    const cenaText = isNaN(cenaNum) ? '0,00' : cenaNum.toFixed(2).replace('.', ',');
+                    
+                    let obraz_url = row[6] ? row[6].trim() : '';
+                    if(!obraz_url) obraz_url = 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?ixlib=rb-4.0.3&w=600&q=80'; // Fallback image
+                    
+                    const dostepny = row[7] ? row[7].trim().toUpperCase() : 'FALSE';
+
+                    // Generujemy kartę tylko, jeśli w kolumnie widnieje TRUE
+                    if (dostepny === 'TRUE') {
+                        productCount++;
+                        const pelnyOpis = waga ? `${opis} (ok. ${waga})` : opis;
+                        
+                        // Zabezpieczenie apostrofów w nazwie do użycia w funkcji JS
+                        const safeName = nazwa.replace(/'/g, "\\'");
+                        
+                        const cardHTML = `
+                            <div class="shop-card">
+                                <img src="${obraz_url}" alt="${nazwa}" class="shop-img" onerror="this.src='https://images.unsplash.com/photo-1626200419199-391ae4be7a41?ixlib=rb-4.0.3&w=600&q=80'">
+                                <h3 class="shop-title">${nazwa}</h3>
+                                <p class="shop-desc">${pelnyOpis}</p>
+                                <div class="shop-price">${cenaText} zł</div>
+                                <div class="purchase-controls">
+                                    <div class="qty-selector">
+                                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
+                                        <input type="text" class="qty-input" value="1" readonly>
+                                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+                                    </div>
+                                    <button class="btn-add" onclick="addToCart('${safeName}', ${cenaNum || 0}, this)">DODAJ</button>
+                                </div>
+                            </div>
+                        `;
+                        productsContainer.innerHTML += cardHTML;
+                    }
+                }
+
+                if(productCount === 0) {
+                    productsContainer.innerHTML = '<p style="text-align: center; color: var(--text-muted); grid-column: 1/-1;">Asortyment jest w trakcie aktualizacji. Zapraszamy wkrótce.</p>';
+                }
+
+            } catch (error) {
+                console.error("Błąd podczas ładowania asortymentu:", error);
+                document.getElementById('dynamic-shop-grid').innerHTML = '<p style="color: #ff4444; text-align: center; grid-column: 1/-1;">Brak połączenia z magazynem. Sprawdź połączenie internetowe lub odśwież stronę.</p>';
+            }
+        }
+
+        // Uruchom ładowanie po wczytaniu strony
+        window.addEventListener('DOMContentLoaded', loadProducts);
     </script>
 </body>
 </html>
