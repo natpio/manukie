@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manufaktura Kiełbas - Strona Główna (PWA)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- ZMIENNE KOLORYSTYCZNE (DOMYŚLNE) --- */
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #0a0a0a;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent-gold: #c69c6d;
+            --shadow-gold: rgba(198, 156, 109, 0.1);
+        }
+
+        /* --- ZMIENNE KOLORYSTYCZNE (TRYB LUXURY) --- */
+        body.luxury-mode {
+            --bg-dark: #000000;
+            --bg-card: #030303;
+            --text-muted: #777777;
+            --accent-gold: #e5b376;
+            --shadow-gold: rgba(229, 179, 118, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            line-height: 1.6; 
+            overflow-x: hidden;
+            transition: background-color 1s ease; 
+        }
+        
+        h1, h2, h3, .logo { font-family: 'Oswald', sans-serif; text-transform: uppercase; transition: color 1s ease; }
+        a { text-decoration: none; color: var(--text-main); transition: color 0.3s ease; }
+        a:hover { color: var(--accent-gold); }
+
+        /* --- PRZYCISK TRYBU LUXURY --- */
+        #luxury-toggle-btn {
+            position: fixed; bottom: 30px; right: 30px; z-index: 10000;
+            background: rgba(10, 10, 10, 0.8); border: 1px solid var(--accent-gold);
+            color: var(--accent-gold); padding: 12px 20px; border-radius: 30px;
+            cursor: pointer; font-family: 'Oswald', sans-serif; font-size: 14px; letter-spacing: 1px;
+            backdrop-filter: blur(5px); transition: all 0.4s ease; box-shadow: 0 0 15px var(--shadow-gold);
+        }
+        #luxury-toggle-btn:hover { background: var(--accent-gold); color: #000; transform: scale(1.05); }
+
+        /* --- PRELOADER --- */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #050505; z-index: 99999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        .loader-logo { font-family: 'Oswald', sans-serif; font-size: 32px; color: var(--accent-gold); letter-spacing: 4px; margin-bottom: 30px; text-transform: uppercase; animation: pulse 2s infinite; }
+        .loader-bar { width: 250px; height: 2px; background: #222; position: relative; overflow: hidden; }
+        .loader-progress { position: absolute; top: 0; left: 0; height: 100%; width: 0; background: var(--accent-gold); animation: loadBar 1.5s ease-in-out forwards; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        @keyframes loadBar { 0% { width: 0; } 100% { width: 100%; } }
+
+        /* --- KURSOR PREMIUM --- */
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, input, textarea, .gallery-item, .feature-box, .flavor-card, .location-btn, .addon-card { cursor: none !important; }
+            .custom-cursor {
+                position: fixed; top: 0; left: 0; width: 10px; height: 10px;
+                background-color: var(--accent-gold); border-radius: 50%;
+                transform: translate(-50%, -50%); pointer-events: none; z-index: 100000;
+                transition: width 0.3s cubic-bezier(0.25, 1, 0.5, 1), height 0.3s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s;
+                mix-blend-mode: difference;
+            }
+            .custom-cursor.hover { width: 50px; height: 50px; background-color: transparent; border: 1px solid var(--accent-gold); mix-blend-mode: normal; }
+            body.luxury-mode .custom-cursor { box-shadow: 0 0 10px var(--accent-gold); }
+        }
+
+        /* --- NAWIGACJA --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center; padding: 30px 50px;
+            background-color: rgba(18, 18, 18, 0); position: fixed; width: 100%; top: 0; z-index: 100; transition: all 0.5s ease;
+        }
+        header.scrolled {
+            padding: 10px 50px; background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(198, 156, 109, 0.2); box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        .logo { font-size: 26px; font-weight: 600; text-align: center; letter-spacing: 2px; line-height: 1.2; }
+        header.scrolled .logo { font-size: 20px; }
+        .logo span { font-size: 14px; font-weight: 400; color: var(--text-muted); letter-spacing: 4px; }
+        nav ul { display: flex; list-style: none; gap: 30px; align-items: center; }
+        nav ul li a { font-family: 'Oswald', sans-serif; font-size: 16px; letter-spacing: 1px; }
+
+        /* --- HERO SECTION --- */
+        .hero { position: relative; height: 100vh; display: flex; align-items: center; padding: 0 10%; overflow: hidden; }
+        .hero-video {
+            position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+            transform: translateX(-50%) translateY(-50%); z-index: -2; object-fit: cover; opacity: 1;
+        }
+        .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0, 0, 0, 0.3) 0%, var(--bg-dark) 100%); z-index: -1; transition: background 1s ease; }
+        .hero-content { position: relative; z-index: 1; max-width: 650px; }
+        .hero h1 { font-size: 72px; line-height: 1.1; margin-bottom: 30px; text-shadow: 0px 4px 15px rgba(0,0,0,1); }
+        .btn {
+            display: inline-block; border: 2px solid var(--accent-gold); padding: 14px 35px;
+            font-family: 'Oswald', sans-serif; font-size: 18px; letter-spacing: 2px; color: var(--accent-gold);
+            background: transparent; transition: all 0.3s ease; box-shadow: 0 0 15px var(--shadow-gold);
+        }
+        .btn:hover { background: var(--accent-gold); color: var(--bg-dark); box-shadow: 0 0 25px var(--shadow-gold); }
+
+        /* --- SEKCJE OGÓLNE --- */
+        .section-padding { padding: 100px 10%; }
+        .section-title { font-size: 42px; color: var(--accent-gold); margin-bottom: 60px; letter-spacing: 3px; text-align: center; }
+
+        /* --- DLACZEGO MY --- */
+        .features-section { background-color: var(--bg-dark); transition: background-color 1s ease; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; }
+        .feature-box { background-color: var(--bg-card); padding: 40px 20px; border-radius: 4px; border: 1px solid #1a1a1a; transition: all 0.4s ease; text-align: center; }
+        .feature-box:hover { transform: translateY(-10px); border-color: rgba(198, 156, 109, 0.4); box-shadow: 0 15px 40px var(--shadow-gold); }
+        .feature-icon { font-size: 48px; margin-bottom: 20px; display: block; filter: grayscale(100%) brightness(0.8); transition: all 0.4s ease; }
+        .feature-box:hover .feature-icon { filter: grayscale(0%) brightness(1); transform: scale(1.1); }
+        .feature-box h3 { font-size: 18px; letter-spacing: 1px; color: #ddd; }
+
+        /* --- NASZE SMAKI --- */
+        .flavors-section { background-color: var(--bg-card); transition: background-color 1s ease; }
+        .flavors-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px; }
+        .flavor-card { background-color: var(--bg-dark); padding: 20px; border-radius: 4px; border: 1px solid #1a1a1a; transition: all 0.4s ease; text-align: center; }
+        .flavor-card:hover { transform: translateY(-10px); border-color: var(--accent-gold); box-shadow: 0 15px 40px var(--shadow-gold); }
+        .card-image-wrapper { position: relative; width: 100%; height: 260px; overflow: hidden; border-radius: 2px; border-bottom: 2px solid var(--accent-gold); margin-bottom: 25px; }
+        .card-image-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+        .flavor-card:hover .card-image-wrapper img { transform: scale(1.1); }
+        .card-details-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(4px); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .flavor-card:hover .card-details-overlay { transform: translateY(0); }
+        .card-details-overlay .desc { font-size: 14px; color: #ddd; margin-bottom: 15px; line-height: 1.5; }
+        .card-details-overlay .meta { display: flex; gap: 20px; margin-bottom: 20px; font-family: 'Oswald', sans-serif; }
+        .card-details-overlay .weight { color: var(--text-muted); font-size: 16px; }
+        .card-details-overlay .price { color: var(--accent-gold); font-size: 20px; font-weight: 600; }
+        .btn-small { background: transparent; border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 8px 20px; font-family: 'Oswald', sans-serif; font-size: 14px; transition: all 0.3s ease; text-transform: uppercase; display: inline-block; cursor: pointer; }
+        .btn-small:hover { background: var(--accent-gold); color: #000; }
+        .flavor-card h3 { font-size: 24px; letter-spacing: 2px; }
+
+        /* --- ZESTAWY --- */
+        .sets-section { background-color: var(--bg-dark); transition: background-color 1s ease; }
+        .sets-grid { display: flex; flex-direction: column; gap: 40px; align-items: center; }
+        .set-card { display: flex; background: var(--bg-card); border: 1px solid #1a1a1a; border-radius: 4px; overflow: hidden; max-width: 1000px; width: 100%; transition: all 0.4s ease; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .set-card:hover { border-color: var(--accent-gold); box-shadow: 0 15px 40px var(--shadow-gold); transform: translateY(-5px); }
+        .set-image { flex: 1; min-width: 40%; }
+        .set-image img { width: 100%; height: 100%; object-fit: cover; }
+        .set-details { flex: 1.5; padding: 40px; display: flex; flex-direction: column; justify-content: center; }
+        .set-details h3 { font-size: 32px; color: var(--accent-gold); margin-bottom: 15px; letter-spacing: 2px; }
+        .set-details .desc { color: #ddd; margin-bottom: 20px; line-height: 1.6; }
+        .set-details .includes { margin-bottom: 30px; color: var(--text-muted); font-size: 15px; list-style-type: none; }
+        .set-details .includes li { margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .set-details .includes li::before { content: '✦'; color: var(--accent-gold); font-size: 12px; }
+        .set-details .meta { display: flex; align-items: center; justify-content: space-between; margin-top: auto; border-top: 1px solid #222; padding-top: 20px; }
+        .set-details .price { font-size: 32px; font-weight: 700; color: #fff; font-family: 'Oswald', sans-serif; }
+
+        /* --- DODATKI --- */
+        .addons-section { background-color: var(--bg-card); transition: background-color 1s ease; }
+        .addons-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px; }
+        .addon-card { background: var(--bg-dark); border: 1px solid #1a1a1a; padding: 30px 20px; text-align: center; border-radius: 4px; transition: all 0.4s ease; cursor: pointer; }
+        .addon-card:hover { transform: translateY(-10px); border-color: rgba(198, 156, 109, 0.4); box-shadow: 0 15px 30px var(--shadow-gold); }
+        .addon-icon { font-size: 48px; margin-bottom: 20px; display: block; filter: grayscale(100%) brightness(0.8); transition: all 0.3s ease; }
+        .addon-card:hover .addon-icon { filter: grayscale(0%) brightness(1); transform: scale(1.1); }
+        .addon-card h3 { font-size: 18px; margin-bottom: 10px; color: #fff; letter-spacing: 1px; }
+        .addon-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 15px; line-height: 1.5; }
+        .addon-card .price { color: var(--accent-gold); font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 600; }
+
+        /* --- MAPA LOKALI --- */
+        .locations-section { background-color: var(--bg-dark); transition: background-color 1s ease; }
+        .locations-container { display: flex; gap: 40px; background-color: var(--bg-card); border: 1px solid #1a1a1a; padding: 30px; border-radius: 4px; transition: background-color 1s ease; }
+        .locations-list { flex: 1; display: flex; flex-direction: column; gap: 15px; }
+        .location-btn { background-color: var(--bg-dark); border: 1px solid #333; color: #fff; padding: 15px 20px; font-family: 'Oswald', sans-serif; font-size: 18px; text-align: left; transition: all 0.3s ease; letter-spacing: 1px; }
+        .location-btn:hover, .location-btn.active { background-color: rgba(198, 156, 109, 0.1); border-color: var(--accent-gold); color: var(--accent-gold); }
+        .location-details-panel { flex: 2; padding: 20px; background-color: #050505; border: 1px solid #1a1a1a; position: relative; }
+        .location-details { display: none; animation: fadeIn 0.5s; }
+        .location-details.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+        .loc-title h3 { font-size: 28px; color: var(--accent-gold); margin-bottom: 5px; }
+        .loc-title p { color: var(--text-muted); font-size: 16px; }
+        .loc-info { margin-bottom: 20px; color: #ccc; }
+        .loc-info p { margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .map-placeholder { width: 100%; height: 250px; background: url('https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80') center/cover; border: 1px solid #333; filter: grayscale(80%) contrast(1.2); }
+
+        /* --- GALERIA --- */
+        .gallery-section { background-color: var(--bg-card); transition: background-color 1s ease; }
+        .gallery-grid { column-count: 3; column-gap: 20px; padding-top: 20px; }
+        .gallery-item { break-inside: avoid; margin-bottom: 20px; border-radius: 4px; overflow: hidden; position: relative; cursor: pointer; }
+        .gallery-item img { width: 100%; display: block; border-radius: 4px; transition: transform 0.5s ease, filter 0.3s ease; filter: brightness(0.7); }
+        .gallery-item:hover img { transform: scale(1.05); filter: brightness(1); }
+        .gallery-item::after { content: '+'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 40px; font-weight: 300; opacity: 0; transition: opacity 0.3s ease; }
+        .gallery-item:hover::after { opacity: 1; }
+
+        /* LIGHTBOX */
+        #lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        #lightbox.active { opacity: 1; pointer-events: auto; }
+        #lightbox img { max-width: 90%; max-height: 90vh; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 2px solid #222; }
+        .close-lightbox { position: absolute; top: 30px; right: 40px; color: #fff; font-size: 40px; transition: color 0.3s; cursor: pointer; }
+        .close-lightbox:hover { color: var(--accent-gold); }
+
+        /* --- CERTYFIKATY --- */
+        .certificates-section { padding: 60px 10%; background-color: var(--bg-dark); border-top: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a; text-align: center; transition: background-color 1s ease; }
+        .cert-container { display: flex; justify-content: center; gap: 80px; flex-wrap: wrap; }
+        .cert-badge { display: flex; flex-direction: column; align-items: center; gap: 15px; opacity: 0.6; transition: all 0.4s ease; }
+        .cert-badge:hover { opacity: 1; transform: translateY(-5px); text-shadow: 0 0 15px var(--shadow-gold); }
+        .cert-icon { font-size: 48px; color: var(--accent-gold); }
+        .cert-badge p { font-family: 'Oswald', sans-serif; font-size: 18px; letter-spacing: 2px; color: #fff; margin: 0; }
+        
+        /* --- B2B WSPÓŁPRACA --- */
+        .b2b-section { padding: 100px 10%; background-color: var(--bg-card); display: flex; gap: 60px; align-items: center; transition: background-color 1s ease; }
+        .b2b-info { flex: 1; }
+        .b2b-info h2 { font-size: 42px; color: var(--accent-gold); margin-bottom: 30px; letter-spacing: 2px; }
+        .b2b-info p { color: var(--text-muted); font-size: 18px; margin-bottom: 25px; line-height: 1.8; }
+        .b2b-features { list-style: none; margin-bottom: 40px; }
+        .b2b-features li { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; font-size: 16px; color: #ddd; }
+        .b2b-features li::before { content: '✓'; color: var(--accent-gold); font-weight: bold; font-size: 20px; }
+        .b2b-downloads { display: flex; gap: 20px; flex-wrap: wrap; }
+        
+        .b2b-form-container { flex: 1; background-color: var(--bg-dark); padding: 40px; border-radius: 4px; border: 1px solid #1a1a1a; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: background-color 1s ease; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-family: 'Oswald', sans-serif; letter-spacing: 1px; color: var(--text-muted); }
+        .form-control { width: 100%; padding: 12px 15px; background-color: var(--bg-card); border: 1px solid #333; color: #fff; font-family: 'Roboto', sans-serif; border-radius: 2px; transition: border-color 0.3s ease, background-color 1s ease; }
+        .form-control:focus { outline: none; border-color: var(--accent-gold); }
+        textarea.form-control { resize: vertical; min-height: 120px; }
+        .b2b-form-container .btn { width: 100%; text-align: center; margin-top: 10px; cursor: pointer; }
+
+        /* --- LICZNIKI --- */
+        .counters-section { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 40px; padding: 80px 10%; background-color: #030303; border-top: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a; }
+        .counter-box { text-align: center; }
+        .counter-box .counter { font-family: 'Oswald', sans-serif; font-size: 64px; color: var(--accent-gold); font-weight: 600; line-height: 1.2; margin-bottom: 5px; text-shadow: 0 0 20px var(--shadow-gold); }
+        .counter-box p { color: var(--text-muted); font-size: 16px; letter-spacing: 2px; font-family: 'Oswald', sans-serif; }
+
+        /* --- HISTORIA --- */
+        .history-section { background-color: var(--bg-dark); text-align: center; transition: background-color 1s ease; }
+        .timeline { position: relative; max-width: 900px; margin: 0 auto; }
+        .timeline::after { content: ''; position: absolute; width: 2px; background-color: #333; top: 0; bottom: 0; left: 50%; margin-left: -1px; }
+        .timeline-item { padding: 20px 40px; position: relative; width: 50%; box-sizing: border-box; }
+        .timeline-item.left { left: 0; text-align: right; }
+        .timeline-item.right { left: 50%; text-align: left; }
+        .timeline-item::after { content: ''; position: absolute; width: 20px; height: 20px; background-color: var(--bg-dark); border: 2px solid var(--accent-gold); top: 35px; border-radius: 50%; z-index: 1; transition: all 0.3s ease; }
+        .timeline-item.left::after { right: -10px; }
+        .timeline-item.right::after { left: -10px; }
+        .timeline-item:hover::after { background-color: var(--accent-gold); box-shadow: 0 0 15px var(--shadow-gold); }
+        .timeline-content { background-color: var(--bg-card); padding: 30px; border-radius: 4px; border: 1px solid #1a1a1a; transition: all 0.4s ease; display: inline-block; width: 100%; }
+        .timeline-item:hover .timeline-content { border-color: rgba(198, 156, 109, 0.4); transform: translateY(-5px); box-shadow: 0 10px 20px var(--shadow-gold); }
+        .timeline-year { font-family: 'Oswald', sans-serif; font-size: 32px; color: var(--accent-gold); margin-bottom: 10px; display: block; font-weight: 600; }
+        .timeline-title { font-size: 20px; letter-spacing: 1px; color: #fff; }
+
+        /* --- OPINIE KLIENTÓW --- */
+        .testimonials-section { background-color: var(--bg-card); position: relative; transition: background-color 1s ease; }
+        .testimonial-slider { position: relative; height: 180px; display: flex; justify-content: center; align-items: center; }
+        .testimonial { position: absolute; opacity: 0; max-width: 700px; transform: translateY(20px); transition: opacity 0.8s ease, transform 0.8s ease; pointer-events: none; text-align: center;}
+        .testimonial.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .testimonial .stars { color: var(--accent-gold); font-size: 24px; margin-bottom: 15px; letter-spacing: 5px; text-shadow: 0 0 10px var(--shadow-gold); }
+        .testimonial p { font-size: 24px; font-style: italic; color: #fff; margin-bottom: 20px; line-height: 1.5; font-weight: 300; }
+        .testimonial span { font-family: 'Oswald', sans-serif; color: var(--text-muted); font-size: 16px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- O NAS --- */
+        .about-section { display: flex; gap: 60px; background-color: #030303; align-items: center; }
+        .about-text { flex: 1; }
+        .about-image { flex: 1; }
+        .about-image img { width: 100%; border-radius: 4px; border: 1px solid #222; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+
+        /* --- SCROLL REVEAL --- */
+        .reveal { opacity: 0; transform: translateY(60px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* RWD */
+        @media (max-width: 900px) {
+            header { flex-direction: column; padding: 20px; background-color: rgba(10, 10, 10, 0.95); }
+            nav ul { margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+            .hero h1 { font-size: 48px; }
+            .set-card { flex-direction: column; }
+            .set-image { min-height: 250px; }
+            .locations-container { flex-direction: column; }
+            .gallery-grid { column-count: 2; }
+            .b2b-section { flex-direction: column; }
+            .timeline::after { left: 30px; }
+            .timeline-item { width: 100%; padding-left: 70px; padding-right: 0; text-align: left; }
+            .timeline-item.right { left: 0; }
+            .timeline-item.left::after, .timeline-item.right::after { left: 20px; right: auto; }
+            .about-section { flex-direction: column; }
+        }
+        @media (max-width: 600px) { .gallery-grid { column-count: 1; } }
+    </style>
+
+    <!-- Konfiguracja PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#c69c6d">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker zarejestrowany pomyślnie!');
+                })
+                .catch(err => {
+                    console.log('Błąd rejestracji ServiceWorker: ', err);
+                });
+            });
+        }
+    </script>
+</head>
+<body>
+
+    <button id="luxury-toggle-btn">✦ WŁĄCZ TRYB WIECZORNY</button>
+
+    <div id="preloader">
+        <div class="loader-logo">MANUFAKTURA KIEŁBAS</div>
+        <div class="loader-bar"><div class="loader-progress"></div></div>
+    </div>
+
+    <div class="custom-cursor" id="custom-cursor"></div>
+
+    <header id="main-header">
+        <div class="logo">MANUFAKTURA<br><span>~ KIEŁBAS ~</span></div>
+        <nav>
+            <ul>
+                <li><a href="#menu">MENU</a></li>
+                <li><a href="#zestawy">ZESTAWY</a></li>
+                <li><a href="#lokalizacje">LOKALIZACJE</a></li>
+                <li><a href="sklep.html">SKLEP ONLINE</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <video autoplay loop muted playsinline class="hero-video" id="hero-video">
+            <source src="wygeneruj_video_połącz_wizj.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
+        <div class="hero-content reveal active">
+            <h1>Prawdziwa kiełbasa.<br>Bez kompromisów.</h1>
+            <a href="#menu" class="btn">[ ZOBACZ NASZE MENU ]</a>
+        </div>
+    </section>
+
+    <!-- DLACZEGO MY -->
+    <section class="section-padding features-section">
+        <h2 class="section-title reveal">DLACZEGO MY?</h2>
+        <div class="features-grid">
+            <div class="feature-box reveal"><span class="feature-icon">🥩</span><h3>100% MIĘSA</h3></div>
+            <div class="feature-box reveal" style="transition-delay: 0.1s;"><span class="feature-icon">🔥</span><h3>TRADYCYJNE WĘDZENIE</h3></div>
+            <div class="feature-box reveal" style="transition-delay: 0.2s;"><span class="feature-icon">🌿</span><h3>NATURALNE PRZYPRAWY</h3></div>
+            <div class="feature-box reveal" style="transition-delay: 0.3s;"><span class="feature-icon">🚚</span><h3>DOSTAWA CODZIENNIE</h3></div>
+            <div class="feature-box reveal" style="transition-delay: 0.4s;"><span class="feature-icon">❤️</span><h3>RODZINNA RECEPTURA</h3></div>
+        </div>
+    </section>
+
+    <!-- NASZE SMAKI -->
+    <section id="menu" class="section-padding flavors-section">
+        <h2 class="section-title reveal">NASZE SMAKI</h2>
+        <div class="flavors-grid">
+            <div class="flavor-card reveal">
+                <div class="card-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1626200419199-391ae4be7a41?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Tradycyjna">
+                    <div class="card-details-overlay">
+                        <p class="desc">100% mięsa wieprzowego<br>Wędzona drewnem bukowym.</p>
+                        <div class="meta"><span class="weight">420 g</span><span class="price">29,90 zł</span></div>
+                        <button class="btn-small">Dowiedz się więcej</button>
+                    </div>
+                </div>
+                <h3>TRADYCYJNA</h3>
+            </div>
+            <div class="flavor-card reveal">
+                <div class="card-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1585325701956-60dd9c858a3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Czosnkowa">
+                    <div class="card-details-overlay">
+                        <p class="desc">Zdecydowany aromat świeżego czosnku, idealny balans przypraw.</p>
+                        <div class="meta"><span class="weight">400 g</span><span class="price">32,90 zł</span></div>
+                        <button class="btn-small">Dowiedz się więcej</button>
+                    </div>
+                </div>
+                <h3>CZOSNKOWA</h3>
+            </div>
+            <div class="flavor-card reveal">
+                <div class="card-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Pikantna">
+                    <div class="card-details-overlay">
+                        <p class="desc">Dodatek świeżego Jalapeño. Dla fanów mocnych wrażeń.</p>
+                        <div class="meta"><span class="weight">350 g</span><span class="price">34,90 zł</span></div>
+                        <button class="btn-small">Dowiedz się więcej</button>
+                    </div>
+                </div>
+                <h3>PIKANTNA</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- ZESTAWY -->
+    <section id="zestawy" class="section-padding sets-section">
+        <h2 class="section-title reveal">POLECANE ZESTAWY</h2>
+        <div class="sets-grid">
+            
+            <div class="set-card reveal">
+                <div class="set-image">
+                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Grill Box">
+                </div>
+                <div class="set-details">
+                    <h3>GRILL BOX PREMIUM</h3>
+                    <p class="desc">Kompletny pakiet na idealne popołudnie przy ruszcie. Złożony z naszych największych bestsellerów, by zadowolić każdego fana dymu i ognia.</p>
+                    <ul class="includes">
+                        <li>2x Kiełbasa Tradycyjna (ok. 850g)</li>
+                        <li>1x Kiełbasa Pikantna z Jalapeño (ok. 350g)</li>
+                        <li>1x Kiełbasa Czosnkowa (ok. 400g)</li>
+                        <li>Rzemieślnicza musztarda z gorczycą gratis</li>
+                    </ul>
+                    <div class="meta">
+                        <span class="price">109,00 zł</span>
+                        <button class="btn-small">DODAJ DO KOSZYKA</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="set-card reveal">
+                <div class="set-image">
+                    <img src="https://images.unsplash.com/photo-1603048297172-c92544798d5e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Deska Konesera">
+                </div>
+                <div class="set-details">
+                    <h3>DESKA KONESERA</h3>
+                    <p class="desc">Wyroby długodojrzewające i mocno podsuszane. Idealna propozycja na wieczorne spotkania z przyjaciółmi, deskę wędlin lub jako dodatek do wina.</p>
+                    <ul class="includes">
+                        <li>Kabanosy rzemieślnicze (300g)</li>
+                        <li>Kiełbasa podsuszana krucha (400g)</li>
+                        <li>Kiełbasa ze świeżym pieprzem (350g)</li>
+                        <li>Deska dębowa do serwowania wypalana logo</li>
+                    </ul>
+                    <div class="meta">
+                        <span class="price">149,00 zł</span>
+                        <button class="btn-small">DODAJ DO KOSZYKA</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- DODATKI -->
+    <section class="section-padding addons-section">
+        <h2 class="section-title reveal">Z CZYM TO JEŚĆ?</h2>
+        <div class="addons-grid">
+            <div class="addon-card reveal">
+                <span class="addon-icon">🍯</span>
+                <h3>MUSZTARDA Z GORCZYCĄ</h3>
+                <p>Ostra, lekko słodkawa, robiona według naszej starej receptury z widocznymi ziarnami.</p>
+                <span class="price">12,00 zł</span>
+            </div>
+            <div class="addon-card reveal" style="transition-delay: 0.1s;">
+                <span class="addon-icon">🌿</span>
+                <h3>TARTY CHRZAN</h3>
+                <p>Wyciśnie łzy u najtwardszych. Świeży korzeń tarty tuż przed zapakowaniem.</p>
+                <span class="price">14,00 zł</span>
+            </div>
+            <div class="addon-card reveal" style="transition-delay: 0.2s;">
+                <span class="addon-icon">🥖</span>
+                <h3>CHLEB NA ZAKWASIE</h3>
+                <p>Wypiekany w zaprzyjaźnionej piekarni. Gruba, chrupiąca skórka i miękki środek.</p>
+                <span class="price">18,00 zł</span>
+            </div>
+            <div class="addon-card reveal" style="transition-delay: 0.3s;">
+                <span class="addon-icon">🍺</span>
+                <h3>LOKALNE PIWO KRAFTOWE</h3>
+                <p>Dobraliśmy profil chmielowy tak, by idealnie współgrał z wędzonką.</p>
+                <span class="price">15,00 zł</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAPA LOKALI -->
+    <section id="lokalizacje" class="section-padding locations-section">
+        <h2 class="section-title reveal">LOKALIZACJE I ODBIÓR</h2>
+        <div class="locations-container reveal">
+            <div class="locations-list">
+                <button class="location-btn active" onclick="changeLocation('komorniki')">📍 KOMORNIKI (Centrala)</button>
+                <button class="location-btn" onclick="changeLocation('poznan')">📍 POZNAŃ (Sklep)</button>
+            </div>
+            
+            <div class="location-details-panel">
+                <div id="loc-komorniki" class="location-details active">
+                    <div class="loc-header">
+                        <div class="loc-title">
+                            <h3>KOMORNIKI</h3>
+                            <p>Centrala Produkcyjna / Magazyn Główny</p>
+                        </div>
+                        <a href="#" class="btn-small">Wyznacz Trasę</a>
+                    </div>
+                    <div class="loc-info">
+                        <p>🕒 <strong>Godziny:</strong> Pon - Pt: 06:00 - 15:00</p>
+                        <p>📞 <strong>Telefon:</strong> +48 111 222 333</p>
+                        <p>ℹ️ Punkt odbioru hurtowego (B2B) oraz zamówień online.</p>
+                    </div>
+                    <div class="map-placeholder"></div>
+                </div>
+                <div id="loc-poznan" class="location-details">
+                    <div class="loc-header">
+                        <div class="loc-title">
+                            <h3>POZNAŃ</h3>
+                            <p>Sklep Firmowy</p>
+                        </div>
+                        <a href="#" class="btn-small">Wyznacz Trasę</a>
+                    </div>
+                    <div class="loc-info">
+                        <p>🕒 <strong>Godziny:</strong> Pon - Sob: 09:00 - 19:00</p>
+                        <p>📞 <strong>Telefon:</strong> +48 999 888 777</p>
+                        <p>ℹ️ Świeże wypieki, degustacje, pełna oferta detaliczna.</p>
+                    </div>
+                    <div class="map-placeholder" style="filter: hue-rotate(45deg) grayscale(80%);"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GALERIA -->
+    <section class="section-padding gallery-section">
+        <h2 class="section-title reveal">GALERIA RZEMIOSŁA</h2>
+        <div class="gallery-grid reveal">
+            <div class="gallery-item" onclick="openLightbox(this.querySelector('img').src)"><img src="https://images.unsplash.com/photo-1603048297172-c92544798d5e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Galeria"></div>
+            <div class="gallery-item" onclick="openLightbox(this.querySelector('img').src)"><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Galeria"></div>
+            <div class="gallery-item" onclick="openLightbox(this.querySelector('img').src)"><img src="https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Galeria"></div>
+            <div class="gallery-item" onclick="openLightbox(this.querySelector('img').src)"><img src="https://images.unsplash.com/photo-1585325701956-60dd9c858a3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=800&q=80" alt="Galeria"></div>
+            <div class="gallery-item" onclick="openLightbox(this.querySelector('img').src)"><img src="https://images.unsplash.com/photo-1626200419199-391ae4be7a41?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400&q=80" alt="Galeria"></div>
+        </div>
+    </section>
+
+    <div id="lightbox" onclick="closeLightbox()">
+        <span class="close-lightbox">&times;</span>
+        <img id="lightbox-img" src="" alt="Powiększone zdjęcie">
+    </div>
+
+    <!-- CERTYFIKATY -->
+    <section class="certificates-section reveal">
+        <div class="cert-container">
+            <div class="cert-badge"><span class="cert-icon">🛡️</span><p>CERTYFIKAT HACCP</p></div>
+            <div class="cert-badge" style="transition-delay: 0.1s;"><span class="cert-icon">🥇</span><p>POLSKA SMAKUJE</p></div>
+            <div class="cert-badge" style="transition-delay: 0.2s;"><span class="cert-icon">🌾</span><p>PRODUKT REGIONALNY</p></div>
+        </div>
+    </section>
+
+    <!-- B2B / PARTNERZY -->
+    <section id="b2b" class="b2b-section reveal">
+        <div class="b2b-info">
+            <h2>STREFA B2B / WSPÓŁPRACA</h2>
+            <p>Rzemieślnicza jakość wymaga żelaznej logistyki. Rozumiemy to. Nasz centralny magazyn w Komornikach i precyzyjne zarządzanie flotą zapewniają niezawodność, jakiej oczekujesz. Zaopatrujemy restauracje, hotele i stoiska eventowe, gwarantując ciągłość łańcucha chłodniczego.</p>
+            <ul class="b2b-features">
+                <li>Elastyczne ilości hurtowe i dedykowane partie.</li>
+                <li>Precyzyjne planowanie tras z naszego węzła logistycznego.</li>
+                <li>Przejrzyste cenniki dla stałych partnerów.</li>
+            </ul>
+            <div class="b2b-downloads">
+                <a href="#" class="btn-small">📄 Pobierz Cennik PDF</a>
+                <a href="#" class="btn-small">📄 Katalog Produktów</a>
+            </div>
+        </div>
+
+        <div class="b2b-form-container">
+            <h3 style="margin-bottom: 20px; font-family: 'Oswald', sans-serif; color: var(--accent-gold); letter-spacing: 1px;">FORMULARZ KONTAKTOWY</h3>
+            <form action="#" method="POST">
+                <div class="form-group">
+                    <label for="b2b-name">Nazwa firmy / NIP</label>
+                    <input type="text" id="b2b-name" class="form-control" placeholder="Wpisz dane firmy...">
+                </div>
+                <div class="form-group">
+                    <label for="b2b-email">Adres E-mail</label>
+                    <input type="email" id="b2b-email" class="form-control" placeholder="kontakt@twojafirma.pl">
+                </div>
+                <div class="form-group">
+                    <label for="b2b-message">Zapotrzebowanie (szacowane ilości)</label>
+                    <textarea id="b2b-message" class="form-control" placeholder="Opisz krótko profil działalności i szacowane zapotrzebowanie..."></textarea>
+                </div>
+                <button type="submit" class="btn">ZOSTAŃ PARTNEREM</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- LICZNIKI -->
+    <section class="counters-section reveal">
+        <div class="counter-box"><div class="counter" data-target="15">0</div><p>LAT DOŚWIADCZENIA</p></div>
+        <div class="counter-box"><div class="counter" data-target="350000">0</div><p>SPRZEDANYCH KIEŁBAS</p></div>
+        <div class="counter-box"><div class="counter" data-target="98">0</div><p>% POLECA NAS</p></div>
+    </section>
+
+    <!-- HISTORIA -->
+    <section class="section-padding history-section">
+        <h2 class="section-title reveal">HISTORIA MANUFAKTURY</h2>
+        <div class="timeline">
+            <div class="timeline-item left reveal"><div class="timeline-content"><span class="timeline-year">1998</span><h3 class="timeline-title">Powstanie firmy</h3><p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">Zaczynaliśmy od małego, rodzinnego zakładu, w którym priorytetem od pierwszego dnia była jakość.</p></div></div>
+            <div class="timeline-item right reveal"><div class="timeline-content"><span class="timeline-year">2007</span><h3 class="timeline-title">Pierwsza wędzarnia</h3><p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">Zbudowaliśmy klasyczną wędzarnię, opalając ją wyłącznie drewnem bukowym.</p></div></div>
+            <div class="timeline-item left reveal"><div class="timeline-content"><span class="timeline-year">2015</span><h3 class="timeline-title">Receptura premium</h3><p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">Odrzuciliśmy chemię. Postawiliśmy na autorskie mieszanki ziół, wprowadzając rzemieślnicze smaki.</p></div></div>
+            <div class="timeline-item right reveal"><div class="timeline-content"><span class="timeline-year">2026</span><h3 class="timeline-title">Rozwój i logistyka</h3><p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">Optymalizujemy dostawy z Komornik. Nasze wyroby docierają do najlepszych restauracji.</p></div></div>
+        </div>
+    </section>
+
+    <!-- OPINIE -->
+    <section class="section-padding testimonials-section reveal">
+        <h2 class="section-title">CO MÓWIĄ NASI KLIENCI</h2>
+        <div class="testimonial-slider">
+            <div class="testimonial active"><div class="stars">★★★★★</div><p>"Najlepsza kiełbasa jaką jadłem. Prawdziwy sztos!"</p><span>- Kamil, Poznań</span></div>
+            <div class="testimonial"><div class="stars">★★★★★</div><p>"Smak wędzonej śliwki przeniósł mnie do czasów dzieciństwa."</p><span>- Anna, Komorniki</span></div>
+            <div class="testimonial"><div class="stars">★★★★★</div><p>"Brak sztucznych konserwantów naprawdę czuć."</p><span>- Michał, Swarzędz</span></div>
+        </div>
+    </section>
+
+    <!-- O NAS -->
+    <section class="section-padding about-section">
+        <div class="about-text reveal">
+            <h2 class="section-title" style="text-align: left;">O NAS / FILOZOFIA</h2>
+            <p>Nie jesteśmy masową fabryką. Wierzymy w krótkie łańcuchy dostaw i rzemieślnicze podejście. Każde pęto, które trafia do naszych lokali i na Wasze stoły, przechodzi przez nasze ręce.</p>
+        </div>
+        <div class="about-image reveal">
+            <img src="https://images.unsplash.com/photo-1603048297172-c92544798d5e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Rzemieślnicza praca">
+        </div>
+    </section>
+
+    <script>
+        // --- TRYB LUXURY (Automatyzacja i Toggle) ---
+        const body = document.body;
+        const luxuryToggleBtn = document.getElementById('luxury-toggle-btn');
+        const currentHour = new Date().getHours();
+
+        function enableLuxuryMode() {
+            body.classList.add('luxury-mode');
+            luxuryToggleBtn.innerText = "✧ WYŁĄCZ TRYB WIECZORNY";
+            luxuryToggleBtn.style.background = "var(--accent-gold)";
+            luxuryToggleBtn.style.color = "#000";
+        }
+
+        function disableLuxuryMode() {
+            body.classList.remove('luxury-mode');
+            luxuryToggleBtn.innerText = "✦ WŁĄCZ TRYB WIECZORNY";
+            luxuryToggleBtn.style.background = "rgba(10, 10, 10, 0.8)";
+            luxuryToggleBtn.style.color = "var(--accent-gold)";
+        }
+
+        if (currentHour >= 19 || currentHour < 6) { enableLuxuryMode(); }
+
+        luxuryToggleBtn.addEventListener('click', () => {
+            if (body.classList.contains('luxury-mode')) disableLuxuryMode();
+            else enableLuxuryMode();
+        });
+
+        // --- PRELOADER ---
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            setTimeout(() => {
+                preloader.style.opacity = '0';
+                setTimeout(() => { preloader.style.visibility = 'hidden'; }, 800);
+            }, 1200); 
+        });
+
+        // --- CUSTOM CURSOR ---
+        if (window.matchMedia("(pointer: fine)").matches) {
+            const cursor = document.getElementById('custom-cursor');
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+
+            const interactiveElements = document.querySelectorAll('a, button, input, textarea, .gallery-item, .feature-box, .flavor-card, .location-btn, #luxury-toggle-btn, .addon-card');
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+            });
+        }
+
+        // --- PARALAKSA WIDEO ---
+        const heroVideo = document.getElementById('hero-video');
+        window.addEventListener('scroll', () => {
+            let scrolled = window.pageYOffset;
+            if (scrolled < window.innerHeight) {
+                heroVideo.style.transform = `translateX(-50%) translateY(calc(-50% + ${scrolled * 0.4}px))`;
+            }
+        });
+
+        // --- HEADER ---
+        const header = document.getElementById('main-header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        });
+
+        // --- SCROLL REVEAL & LICZNIKI ---
+        let countersAnimated = false;
+        function revealElements() {
+            const reveals = document.querySelectorAll('.reveal');
+            const windowHeight = window.innerHeight;
+            
+            reveals.forEach((reveal) => {
+                const elementTop = reveal.getBoundingClientRect().top;
+                if (elementTop < windowHeight - 100) {
+                    reveal.classList.add('active');
+                    if (reveal.classList.contains('counters-section') && !countersAnimated) {
+                        countersAnimated = true;
+                        runCounters();
+                    }
+                }
+            });
+        }
+        window.addEventListener('scroll', revealElements);
+        revealElements(); 
+
+        function runCounters() {
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const increment = target / (2000 / 16); 
+                let current = 0;
+                const updateCounter = () => {
+                    current += increment;
+                    if(current < target) {
+                        counter.innerText = Math.ceil(current);
+                        requestAnimationFrame(updateCounter);
+                    } else {
+                        counter.innerText = target.toLocaleString('pl-PL');
+                    }
+                };
+                updateCounter();
+            });
+        }
+
+        // --- KARUZELA OPINII ---
+        const testimonials = document.querySelectorAll('.testimonial');
+        let currentTestimonial = 0;
+        setInterval(() => {
+            testimonials[currentTestimonial].classList.remove('active');
+            currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+            testimonials[currentTestimonial].classList.add('active');
+        }, 5000); 
+
+        // --- MAPA LOKALI ---
+        function changeLocation(locId) {
+            document.querySelectorAll('.location-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.location-details').forEach(panel => panel.classList.remove('active'));
+            document.getElementById('loc-' + locId).classList.add('active');
+        }
+
+        // --- LIGHTBOX ---
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        
+        function openLightbox(imgSrc) {
+            lightboxImg.src = imgSrc;
+            lightbox.classList.add('active');
+        }
+        
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            setTimeout(() => { lightboxImg.src = ''; }, 300);
+        }
+    </script>
+</body>
+</html>
