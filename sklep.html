@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sklep Online - Manufaktura Kiełbas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- ZMIENNE KOLORYSTYCZNE --- */
+        :root {
+            --bg-dark: #121212;
+            --bg-card: #0a0a0a;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent-gold: #c69c6d;
+            --shadow-gold: rgba(198, 156, 109, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            line-height: 1.6; 
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, .logo { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        a { text-decoration: none; color: var(--text-main); transition: color 0.3s ease; }
+        a:hover { color: var(--accent-gold); }
+
+        /* --- KURSOR PREMIUM --- */
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button, input, .shop-card { cursor: none !important; }
+            .custom-cursor {
+                position: fixed; top: 0; left: 0; width: 10px; height: 10px;
+                background-color: var(--accent-gold); border-radius: 50%;
+                transform: translate(-50%, -50%); pointer-events: none; z-index: 100000;
+                transition: width 0.3s, height 0.3s, background-color 0.3s;
+                mix-blend-mode: difference;
+            }
+            .custom-cursor.hover { width: 40px; height: 40px; background-color: transparent; border: 1px solid var(--accent-gold); mix-blend-mode: normal; }
+        }
+
+        /* --- NAWIGACJA SKLEPOWA --- */
+        header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 50px;
+            background-color: rgba(10, 10, 10, 0.95); position: fixed; width: 100%; top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(198, 156, 109, 0.2); box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            backdrop-filter: blur(12px);
+        }
+        .logo { font-size: 20px; font-weight: 600; text-align: center; letter-spacing: 2px; line-height: 1.2; }
+        .logo span { font-size: 12px; font-weight: 400; color: var(--text-muted); letter-spacing: 4px; }
+        nav ul { display: flex; list-style: none; gap: 30px; align-items: center; }
+        nav ul li a { font-family: 'Oswald', sans-serif; font-size: 16px; letter-spacing: 1px; }
+        
+        .cart-icon-wrapper { position: relative; cursor: pointer; display: flex; align-items: center; gap: 10px; font-family: 'Oswald', sans-serif; color: var(--accent-gold); }
+        .cart-icon-wrapper:hover { color: #fff; }
+        .cart-count {
+            background-color: var(--accent-gold); color: #000; font-size: 12px; font-weight: bold;
+            padding: 2px 8px; border-radius: 10px;
+        }
+
+        /* --- HERO SKLEPU --- */
+        .shop-header { padding: 150px 10% 50px; text-align: center; background: linear-gradient(to bottom, #050505, var(--bg-dark)); }
+        .shop-header h1 { font-size: 48px; color: var(--accent-gold); letter-spacing: 3px; margin-bottom: 15px; }
+        .shop-header p { color: var(--text-muted); font-size: 18px; max-width: 600px; margin: 0 auto; }
+
+        /* --- SIATKA PRODUKTÓW --- */
+        .shop-section { padding: 50px 10% 100px; }
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 40px; }
+        
+        .shop-card {
+            background: var(--bg-card); border: 1px solid #1a1a1a; border-radius: 4px; padding: 20px;
+            display: flex; flex-direction: column; transition: all 0.4s ease;
+        }
+        .shop-card:hover { border-color: var(--accent-gold); box-shadow: 0 10px 30px var(--shadow-gold); transform: translateY(-5px); }
+        .shop-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 2px solid var(--accent-gold); margin-bottom: 20px; border-radius: 2px; }
+        
+        .shop-title { font-size: 22px; margin-bottom: 5px; color: #fff; }
+        .shop-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; flex-grow: 1; }
+        .shop-price { font-family: 'Oswald', sans-serif; font-size: 24px; color: var(--accent-gold); font-weight: bold; margin-bottom: 20px; }
+        
+        .purchase-controls { display: flex; gap: 10px; align-items: center; }
+        
+        .qty-selector {
+            display: flex; border: 1px solid #333; border-radius: 2px; overflow: hidden; height: 42px;
+        }
+        .qty-btn {
+            background: var(--bg-dark); color: #fff; border: none; width: 35px; cursor: pointer;
+            font-size: 18px; transition: background 0.3s;
+        }
+        .qty-btn:hover { background: #333; }
+        .qty-input {
+            width: 40px; background: var(--bg-dark); border: none; color: #fff; text-align: center;
+            font-family: 'Oswald', sans-serif; font-size: 16px; pointer-events: none;
+            border-left: 1px solid #333; border-right: 1px solid #333;
+        }
+        
+        .btn-add {
+            flex-grow: 1; height: 42px; background: transparent; border: 1px solid var(--accent-gold);
+            color: var(--accent-gold); font-family: 'Oswald', sans-serif; font-size: 14px; letter-spacing: 1px;
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-add:hover { background: var(--accent-gold); color: #000; }
+
+        /* --- WYSUWANY KOSZYK (SIDEBAR) --- */
+        .cart-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(3px);
+            z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .cart-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .cart-sidebar {
+            position: fixed; top: 0; right: -450px; width: 100%; max-width: 450px; height: 100%;
+            background: var(--bg-card); border-left: 1px solid var(--accent-gold);
+            z-index: 1000; display: flex; flex-direction: column; transition: right 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.8);
+        }
+        .cart-sidebar.active { right: 0; }
+        
+        .cart-header {
+            padding: 30px; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center;
+        }
+        .cart-header h2 { color: var(--accent-gold); font-size: 28px; }
+        .close-cart { font-size: 32px; color: #fff; cursor: pointer; transition: color 0.3s; line-height: 1; }
+        .close-cart:hover { color: var(--accent-gold); }
+        
+        .cart-items { flex-grow: 1; overflow-y: auto; padding: 30px; }
+        .empty-cart-msg { text-align: center; color: var(--text-muted); font-size: 16px; margin-top: 50px; font-style: italic; }
+        
+        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #222; }
+        .cart-item-info h4 { font-size: 16px; color: #fff; margin-bottom: 5px; }
+        .cart-item-info p { color: var(--text-muted); font-size: 14px; }
+        .cart-item-price { font-family: 'Oswald', sans-serif; color: var(--accent-gold); font-size: 18px; text-align: right; }
+        .remove-item { color: #ff4444; font-size: 12px; cursor: pointer; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; }
+        .remove-item:hover { text-decoration: underline; }
+        
+        .cart-footer { padding: 30px; border-top: 1px solid #1a1a1a; background: #050505; }
+        .cart-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .cart-total span { font-family: 'Oswald', sans-serif; font-size: 24px; color: #fff; }
+        .cart-total .total-price { color: var(--accent-gold); font-size: 32px; font-weight: bold; }
+        
+        .btn-checkout {
+            width: 100%; padding: 18px; background: var(--accent-gold); color: #000; border: none;
+            font-family: 'Oswald', sans-serif; font-size: 20px; letter-spacing: 2px; cursor: pointer; transition: background 0.3s;
+        }
+        .btn-checkout:hover { background: #fff; }
+
+        /* RWD */
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 15px; padding: 20px; }
+            .shop-header { padding-top: 180px; }
+        }
+    </style>
+    <!-- Konfiguracja PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#c69c6d">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker zarejestrowany pomyślnie!');
+                })
+                .catch(err => {
+                    console.log('Błąd rejestracji ServiceWorker: ', err);
+                });
+            });
+        }
+    </script>
+</head>
+<body>
+
+    <div class="custom-cursor" id="custom-cursor"></div>
+
+    <!-- NAWIGACJA -->
+    <header>
+        <a href="index.html" class="logo">MANUFAKTURA<br><span>~ KIEŁBAS ~</span></a>
+        <nav>
+            <ul>
+                <li><a href="index.html">WRÓĆ DO STRONY GŁÓWNEJ</a></li>
+                <li>
+                    <div class="cart-icon-wrapper" onclick="toggleCart()">
+                        🛒 KOSZYK <span class="cart-count" id="cart-count">0</span>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- KOSZYK SIDEBAR -->
+    <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h2>TWÓJ KOSZYK</h2>
+            <span class="close-cart" onclick="toggleCart()">&times;</span>
+        </div>
+        <div class="cart-items" id="cart-items-container">
+            <!-- Tutaj JS wstrzykuje produkty -->
+            <p class="empty-cart-msg">Koszyk jest aktualnie pusty.</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>SUMA:</span>
+                <span class="total-price" id="cart-total-price">0,00 zł</span>
+            </div>
+            <button class="btn-checkout" onclick="alert('Moduł płatności zostanie wdrożony w kolejnym etapie!')">ZAMAWIAM</button>
+        </div>
+    </div>
+
+    <!-- NAGŁÓWEK SKLEPU -->
+    <section class="shop-header">
+        <h1>SKLEP ONLINE</h1>
+        <p>Zamów nasze rzemieślnicze wyroby bezpośrednio do domu. Gwarantujemy zachowanie łańcucha chłodniczego podczas transportu.</p>
+    </section>
+
+    <!-- LISTA PRODUKTÓW -->
+    <section class="shop-section">
+        <div class="shop-grid">
+
+            <!-- Produkt 1 -->
+            <div class="shop-card">
+                <img src="https://images.unsplash.com/photo-1626200419199-391ae4be7a41?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Kiełbasa Tradycyjna" class="shop-img">
+                <h3 class="shop-title">Kiełbasa Tradycyjna</h3>
+                <p class="shop-desc">100% mięsa wieprzowego, wędzona drewnem bukowym. Klasyka z naszej wędzarni. (ok. 420g)</p>
+                <div class="shop-price">29,90 zł</div>
+                <div class="purchase-controls">
+                    <div class="qty-selector">
+                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
+                        <input type="text" class="qty-input" value="1" readonly>
+                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+                    </div>
+                    <button class="btn-add" onclick="addToCart('Kiełbasa Tradycyjna', 29.90, this)">DODAJ</button>
+                </div>
+            </div>
+
+            <!-- Produkt 2 -->
+            <div class="shop-card">
+                <img src="https://images.unsplash.com/photo-1585325701956-60dd9c858a3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Kiełbasa Czosnkowa" class="shop-img">
+                <h3 class="shop-title">Kiełbasa Czosnkowa</h3>
+                <p class="shop-desc">Zdecydowany aromat świeżego polskiego czosnku, idealny balans przypraw. (ok. 400g)</p>
+                <div class="shop-price">32,90 zł</div>
+                <div class="purchase-controls">
+                    <div class="qty-selector">
+                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
+                        <input type="text" class="qty-input" value="1" readonly>
+                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+                    </div>
+                    <button class="btn-add" onclick="addToCart('Kiełbasa Czosnkowa', 32.90, this)">DODAJ</button>
+                </div>
+            </div>
+
+            <!-- Produkt 3 -->
+            <div class="shop-card">
+                <img src="https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Kiełbasa Pikantna" class="shop-img">
+                <h3 class="shop-title">Kiełbasa Pikantna</h3>
+                <p class="shop-desc">Mocny dodatek świeżego Jalapeño. Tylko dla fanów ostrych wrażeń. (ok. 350g)</p>
+                <div class="shop-price">34,90 zł</div>
+                <div class="purchase-controls">
+                    <div class="qty-selector">
+                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
+                        <input type="text" class="qty-input" value="1" readonly>
+                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+                    </div>
+                    <button class="btn-add" onclick="addToCart('Kiełbasa Pikantna', 34.90, this)">DODAJ</button>
+                </div>
+            </div>
+
+            <!-- Produkt 4 (Zestaw) -->
+            <div class="shop-card">
+                <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Grill Box Premium" class="shop-img">
+                <h3 class="shop-title">Grill Box Premium</h3>
+                <p class="shop-desc">Zestaw bestsellerów (Tradycyjna x2, Pikantna x1, Czosnkowa x1) + musztarda gratis.</p>
+                <div class="shop-price">109,00 zł</div>
+                <div class="purchase-controls">
+                    <div class="qty-selector">
+                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
+                        <input type="text" class="qty-input" value="1" readonly>
+                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+                    </div>
+                    <button class="btn-add" onclick="addToCart('Grill Box Premium', 109.00, this)">DODAJ</button>
+                </div>
+            </div>
+
+            <!-- Produkt 5 (Dodatek) -->
+            <div class="shop-card">
+                <img src="https://images.unsplash.com/photo-1512489816568-d069db8303d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Musztarda z Gorczycą" class="shop-img" style="filter: grayscale(30%);">
+                <h3 class="shop-title">Musztarda z Gorczycą</h3>
+                <p class="shop-desc">Nasza autorska, ostra musztarda z widocznymi ziarnami. Słoiczek 200g.</p>
+                <div class="shop-price">12,00 zł</div>
+                <div class="purchase-controls">
+                    <div class="qty-selector">
+                        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
+                        <input type="text" class="qty-input" value="1" readonly>
+                        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+                    </div>
+                    <button class="btn-add" onclick="addToCart('Musztarda z Gorczycą', 12.00, this)">DODAJ</button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        // --- KURSOR PREMIUM ---
+        if (window.matchMedia("(pointer: fine)").matches) {
+            const cursor = document.getElementById('custom-cursor');
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+            const interactiveElements = document.querySelectorAll('a, button, .cart-icon-wrapper, .close-cart');
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+            });
+        }
+
+        // --- SILNIK SKLEPU (KOSZYK) ---
+        let cart = [];
+
+        // Otwieranie / Zamykanie Koszyka
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('active');
+            document.getElementById('cart-overlay').classList.toggle('active');
+        }
+
+        // Zmiana ilości na karcie produktu (+ / -)
+        function changeQty(btn, change) {
+            const input = btn.parentElement.querySelector('.qty-input');
+            let currentVal = parseInt(input.value);
+            let newVal = currentVal + change;
+            if (newVal >= 1 && newVal <= 99) {
+                input.value = newVal;
+            }
+        }
+
+        // Dodawanie do koszyka
+        function addToCart(name, price, btnElement) {
+            // Pobierz ilość z sąsiedniego inputa
+            const qtyInput = btnElement.parentElement.querySelector('.qty-input');
+            const quantity = parseInt(qtyInput.value);
+
+            // Sprawdź czy produkt już jest w koszyku
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({ name: name, price: price, quantity: quantity });
+            }
+
+            // Zresetuj input do 1 po dodaniu
+            qtyInput.value = 1;
+            
+            // Zaktualizuj UI i otwórz koszyk
+            updateCartUI();
+            
+            // Wizualny feedback na przycisku
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "DODANO ✓";
+            btnElement.style.background = "var(--accent-gold)";
+            btnElement.style.color = "#000";
+            setTimeout(() => {
+                btnElement.innerText = originalText;
+                btnElement.style.background = "transparent";
+                btnElement.style.color = "var(--accent-gold)";
+            }, 1500);
+            
+            if(!document.getElementById('cart-sidebar').classList.contains('active')){
+                toggleCart();
+            }
+        }
+
+        // Usuwanie z koszyka
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        // Aktualizacja widoku koszyka
+        function updateCartUI() {
+            const container = document.getElementById('cart-items-container');
+            const countDisplay = document.getElementById('cart-count');
+            const totalDisplay = document.getElementById('cart-total-price');
+            
+            // Czyszczenie obecnej listy
+            container.innerHTML = '';
+            
+            let totalItems = 0;
+            let totalPrice = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="empty-cart-msg">Koszyk jest aktualnie pusty.</p>';
+            } else {
+                cart.forEach((item, index) => {
+                    totalItems += item.quantity;
+                    const itemTotal = item.price * item.quantity;
+                    totalPrice += itemTotal;
+
+                    // Tworzenie HTML dla elementu w koszyku
+                    const cartItemHTML = `
+                        <div class="cart-item">
+                            <div class="cart-item-info">
+                                <h4>${item.name}</h4>
+                                <p>Ilość: ${item.quantity} x ${item.price.toFixed(2).replace('.', ',')} zł</p>
+                                <span class="remove-item" onclick="removeFromCart(${index})">Usuń</span>
+                            </div>
+                            <div class="cart-item-price">
+                                ${itemTotal.toFixed(2).replace('.', ',')} zł
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += cartItemHTML;
+                });
+            }
+
+            // Aktualizacja licznika i sumy
+            countDisplay.innerText = totalItems;
+            totalDisplay.innerText = totalPrice.toFixed(2).replace('.', ',') + ' zł';
+        }
+    </script>
+</body>
+</html>
